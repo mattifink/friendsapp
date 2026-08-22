@@ -1,2 +1,2 @@
 # friendsapp
-testrun of a acitivity sharing platfomr
+testrun of a acitivity sharing platform
