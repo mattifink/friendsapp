@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
+const VERSION = "2";
 const STALE_MS = 8 * 60 * 60 * 1000; // ab 8 Stunden gilt ein Eintrag als veraltet
 const $ = (id) => document.getElementById(id);
 const show = (id) => {
@@ -13,6 +14,30 @@ if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
   throw new Error("config.js ist noch nicht ausgefüllt");
 }
 const db = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+
+/* ---------- Fehler sichtbar machen ---------- */
+
+function showError(msg) {
+  const el = $("error");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.hidden = !msg;
+}
+
+// Aus der technischen Meldung eine Anweisung machen, mit der man etwas anfangen kann.
+function explain(error) {
+  const code = String(error.code || "");
+  const msg = String(error.message || error);
+  if (code === "PGRST202" || /could not find the function|does not exist/i.test(msg))
+    return "Die Datenbank kennt die Funktionen noch nicht. Führe supabase/schema.sql im Supabase SQL-Editor aus.";
+  if (code === "42501" || /permission denied|not authorized/i.test(msg))
+    return "Die Datenbank verweigert den Zugriff. Führe die aktuelle Fassung von supabase/schema.sql im SQL-Editor aus.";
+  if (code === "PGRST301" || /jwt|api key/i.test(msg))
+    return "Der Key in config.js passt nicht zum Projekt. Prüfe URL und anon-Key unter Project Settings → API.";
+  if (/failed to fetch|networkerror|load failed/i.test(msg))
+    return "Keine Verbindung zur Datenbank. Prüfe das Internet und die SUPABASE_URL in config.js.";
+  return "Speichern fehlgeschlagen: " + msg;
+}
 
 /* ---------- Gruppe & Identität ---------- */
 
@@ -93,6 +118,7 @@ let timer = null;
 async function start() {
   show("screen-main");
   $("me-name").textContent = me.name;
+  $("version").textContent = `Version ${VERSION}`;
 
   await refresh(true);
 
@@ -131,7 +157,7 @@ $("input-note").addEventListener("blur", () => {
 
 async function save() {
   state.note = $("input-note").value;
-  const { error } = await db.rpc("set_status", {
+  const args = () => ({
     g: group,
     mid: me.id,
     sec: me.secret,
@@ -139,8 +165,24 @@ async function save() {
     is_free: state.free,
     txt: state.note.trim(),
   });
-  flash(error ? "nicht gespeichert" : "gespeichert");
-  if (error) return;
+
+  let { error } = await db.rpc("set_status", args());
+
+  // Eintrag mit dieser ID gehört zu einem alten Secret (z. B. nach einem Schema-Wechsel)?
+  // Dann still mit frischer ID neu anfangen, statt den Nutzer im Regen stehen zu lassen.
+  if (error && /gehoert jemand anderem/i.test(String(error.message))) {
+    me = { ...me, id: randomId(20), secret: randomId(24) };
+    localStorage.setItem(meKey(), JSON.stringify(me));
+    ({ error } = await db.rpc("set_status", args()));
+  }
+
+  if (error) {
+    flash("nicht gespeichert");
+    showError(explain(error));
+    return;
+  }
+  showError("");
+  flash("gespeichert");
   channel?.send({ type: "broadcast", event: "update", payload: {} });
   refresh();
 }
@@ -156,7 +198,8 @@ function flash(text) {
 
 async function refresh(applyMine = false) {
   const { data, error } = await db.rpc("list_statuses", { g: group });
-  if (error || !data) return;
+  if (error) return showError(explain(error));
+  if (!data) return;
 
   if (applyMine) {
     const mine = data.find((r) => r.id === me.id);

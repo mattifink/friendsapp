@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 
@@ -59,6 +59,7 @@
       </div>
       <input id="input-note" class="input note" type="text" maxlength="140"
              placeholder="Was &amp; wo? z. B. „Kaffee im Park, kommt vorbei“">
+      <p id="error" class="error" role="alert" hidden></p>
     </div>
 
     <ul id="list" class="list"></ul>
@@ -66,12 +67,13 @@
 
     <footer class="footer">
       <button id="btn-leave" class="link">Meinen Eintrag löschen</button>
+      <div id="version" class="version"></div>
     </footer>
   </section>
 
 </main>
 
-<script src="config.js"></script>
-<script type="module" src="app.js"></script>
+<script src="config.js?v=2"></script>
+<script type="module" src="app.js?v=2"></script>
 </body>
 </html>

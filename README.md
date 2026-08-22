@@ -58,6 +58,24 @@ Dann `http://localhost:8000` öffnen.
 * **Aufräumen:** Unten in `schema.sql` steht ein fertiges Statement, um Einträge älter als
   14 Tage zu löschen.
 
+## Es wird nichts gespeichert — was tun?
+
+Die App zeigt den Grund seit Version 2 direkt unter dem Eingabefeld an. Die drei häufigen Fälle:
+
+| Meldung | Ursache | Lösung |
+| --- | --- | --- |
+| „Die Datenbank kennt die Funktionen noch nicht" | `schema.sql` wurde nie (oder nur in der alten Fassung) ausgeführt | Aktuelle `supabase/schema.sql` im SQL-Editor ausführen |
+| „Die Datenbank verweigert den Zugriff" | Hochgeladene App und Datenbank-Schema passen nicht zusammen | Beides auf den aktuellen Stand bringen: Dateien neu hochladen **und** `schema.sql` ausführen |
+| „Keine Verbindung zur Datenbank" | Falsche `SUPABASE_URL`, falscher Key, oder Projekt pausiert | Werte unter *Project Settings → API* vergleichen; Supabase pausiert kostenlose Projekte nach einer Woche ohne Nutzung |
+
+Wenn gar nichts erscheint, sondern nur „Fast fertig": Dann ist `config.js` nicht ausgefüllt
+oder wurde nicht mit hochgeladen.
+
+**Alte Version im Browser?** Unten in der App steht die Versionsnummer. Steht dort nichts
+oder eine alte Zahl, hältst du eine zwischengespeicherte Fassung in der Hand: Seite mit
+Umschalt+Neuladen aktualisieren, bei der Homescreen-App einmal schließen und neu öffnen.
+GitHub Pages braucht nach einem Push außerdem ein bis zwei Minuten.
+
 ## Darf das Repo öffentlich sein?
 
 Ja. Der `anon public` Key in `config.js` ist dafür gemacht, öffentlich zu sein — er steckt

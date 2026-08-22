@@ -96,3 +96,13 @@ code { background: var(--card); padding: 2px 5px; border-radius: 5px; font-size:
 .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
 
 .footer { margin-top: 28px; text-align: center; }
+
+.error {
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 10px;
+  background: #fdecec; color: #92140c; font-size: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  .error { background: #3a1c1c; color: #ffb4ac; }
+}
+.error[hidden] { display: none; }
+.version { color: var(--muted); font-size: 12px; margin-top: 12px; }
