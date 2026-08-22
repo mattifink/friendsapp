@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-const VERSION = "2";
+const VERSION = "3";
 const STALE_MS = 8 * 60 * 60 * 1000; // ab 8 Stunden gilt ein Eintrag als veraltet
 const $ = (id) => document.getElementById(id);
 const show = (id) => {
@@ -13,7 +13,13 @@ if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
   show("screen-setup");
   throw new Error("config.js ist noch nicht ausgefüllt");
 }
-const db = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+// Stolperstein: Unter "Project Settings -> API" steht auch die REST-Adresse
+// (…/rest/v1/). Der Client hängt diesen Pfad selbst an — steht er schon in der URL,
+// fragt er ins Leere. Deshalb hier auf die reine Projekt-Adresse zurechtstutzen.
+const cleanUrl = (u) =>
+  String(u).trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "").replace(/\/+$/, "");
+
+const db = createClient(cleanUrl(cfg.SUPABASE_URL), String(cfg.SUPABASE_ANON_KEY).trim());
 
 /* ---------- Fehler sichtbar machen ---------- */
 
@@ -32,6 +38,8 @@ function explain(error) {
     return "Die Datenbank kennt die Funktionen noch nicht. Führe supabase/schema.sql im Supabase SQL-Editor aus.";
   if (code === "42501" || /permission denied|not authorized/i.test(msg))
     return "Die Datenbank verweigert den Zugriff. Führe die aktuelle Fassung von supabase/schema.sql im SQL-Editor aus.";
+  if (code === "PGRST125" || /invalid path/i.test(msg))
+    return "Die SUPABASE_URL in config.js ist falsch. Dort gehört nur die Projekt-Adresse hin (https://deinprojekt.supabase.co), ohne /rest/v1.";
   if (code === "PGRST301" || /jwt|api key/i.test(msg))
     return "Der Key in config.js passt nicht zum Projekt. Prüfe URL und anon-Key unter Project Settings → API.";
   if (/failed to fetch|networkerror|load failed/i.test(msg))
@@ -155,7 +163,16 @@ $("input-note").addEventListener("blur", () => {
   save();
 });
 
-async function save() {
+// Speichervorgänge nacheinander abarbeiten. Sonst kann ein früherer Aufruf (z. B. der
+// Klick auf "Hab Zeit") nach einem späteren (die getippte Notiz) beim Server ankommen
+// und dessen Ergebnis wieder überschreiben.
+let saveChain = Promise.resolve();
+function save() {
+  saveChain = saveChain.then(doSave, doSave);
+  return saveChain;
+}
+
+async function doSave() {
   state.note = $("input-note").value;
   const args = () => ({
     g: group,

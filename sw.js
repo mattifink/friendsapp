@@ -1,6 +1,6 @@
 // Minimaler Service Worker: App-Hülle offline verfügbar, Daten immer aus dem Netz.
-const CACHE = "zeit-v2";
-const SHELL = ["./", "index.html", "styles.css?v=2", "app.js?v=2", "config.js?v=2", "manifest.webmanifest"];
+const CACHE = "zeit-v3";
+const SHELL = ["./", "index.html", "styles.css?v=3", "app.js?v=3", "config.js?v=3", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

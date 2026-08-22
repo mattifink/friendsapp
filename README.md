@@ -23,6 +23,10 @@ Im Projekt unter *Project Settings → API* findest du die *Project URL* und den
 *anon public* Key. Beides in [`config.js`](config.js) eintragen.
 Der anon-Key ist ausdrücklich für den Browser gedacht und darf öffentlich sein.
 
+> Bei der URL nur die Projekt-Adresse eintragen — `https://deinprojekt.supabase.co`,
+> **ohne** `/rest/v1/`. Auf derselben Seite steht auch die REST-Adresse; die führt zu
+> „Invalid path specified in request URL". Die App stutzt das inzwischen selbst zurecht.
+
 **4. Hochladen**
 Den Ordner irgendwo als statische Seite veröffentlichen — z. B. bei
 [Netlify Drop](https://app.netlify.com/drop) einfach hineinziehen, oder Vercel,
@@ -67,6 +71,7 @@ Die App zeigt den Grund seit Version 2 direkt unter dem Eingabefeld an. Die drei
 | „Die Datenbank kennt die Funktionen noch nicht" | `schema.sql` wurde nie (oder nur in der alten Fassung) ausgeführt | Aktuelle `supabase/schema.sql` im SQL-Editor ausführen |
 | „Die Datenbank verweigert den Zugriff" | Hochgeladene App und Datenbank-Schema passen nicht zusammen | Beides auf den aktuellen Stand bringen: Dateien neu hochladen **und** `schema.sql` ausführen |
 | „Keine Verbindung zur Datenbank" | Falsche `SUPABASE_URL`, falscher Key, oder Projekt pausiert | Werte unter *Project Settings → API* vergleichen; Supabase pausiert kostenlose Projekte nach einer Woche ohne Nutzung |
+| „Die SUPABASE_URL in config.js ist falsch" | In der URL steht der REST-Pfad `/rest/v1/` | Nur `https://deinprojekt.supabase.co` eintragen |
 
 Wenn gar nichts erscheint, sondern nur „Fast fertig": Dann ist `config.js` nicht ausgefüllt
 oder wurde nicht mit hochgeladen.
